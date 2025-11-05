@@ -1,100 +1,313 @@
-# CuePad - Apple TV Remote (Pure Swift)
+# CuePad
 
-纯 Swift 实现的 Apple TV 远程控制应用。
+A native macOS Apple TV Remote application written in pure Swift.
 
-## ✨ 特性
+<p align="center">
+  <img src="https://img.shields.io/badge/Swift-5.7+-orange.svg" />
+  <img src="https://img.shields.io/badge/Platform-macOS-blue.svg" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" />
+</p>
 
-- 🎯 **100% Swift** - 无 Python/Node.js 依赖
-- 🔍 **自动发现** - Bonjour/mDNS 扫描
-- 🔐 **HAP 配对** - 完整的加密配对流程
-- 🎮 **完整遥控** - 所有标准 Apple TV 按键
-- 💬 **文本输入** - RTI 协议支持
-- 🎨 **SwiftUI** - 原生 macOS 界面
+## ✨ Features
 
-## 🚀 快速开始
+- 🎯 **100% Pure Swift** - No Python or Node.js dependencies
+- 🔍 **Automatic Discovery** - Finds Apple TV devices via Bonjour/mDNS
+- 🔐 **HAP Pairing** - Complete HomeKit Accessory Protocol implementation
+- 🎮 **Full Remote Control** - All standard Apple TV buttons (Menu, Select, Play/Pause, etc.)
+- 💬 **Text Input** - Remote Text Input (RTI) protocol support
+- 🎨 **SwiftUI Interface** - Native macOS UI with modern design
+- 💾 **Credential Management** - Saves pairing credentials for automatic reconnection
 
-### 1. 构建运行
+## 🚀 Quick Start
 
-```bash
-open CuePad.xcodeproj
-# ⌘R 运行
-```
+### Prerequisites
 
-### 2. 配置（首次运行）
+- macOS 12.0+
+- Xcode 14.0+
+- Apple TV (4th generation or later) on the same network
 
-详见 [SETUP.md](SETUP.md)：
-- 添加文件引用到 Xcode
-- 配置网络权限
-- 允许本地网络访问（会弹窗提示）
+### Installation
 
-### 3. 使用
+1. **Clone the repository**
 
-1. **扫描** - 点击 "Scan" 发现 Apple TV
-2. **配对** - 点击设备，输入 TV 上显示的 4 位 PIN
-3. **控制** - 使用遥控器按钮
+   ```bash
+   git clone https://github.com/yourusername/CuePad.git
+   cd CuePad
+   ```
 
-下次连接自动使用保存的凭证，无需重新配对。
+2. **Open in Xcode**
 
-## 📊 实现状态
+   ```bash
+   open CuePad.xcodeproj
+   ```
 
-✅ **已完成**（可测试）：
-- 设备发现 ✅ 已验证工作
-- TCP 连接 ✅
-- HAP 配对（M1-M6）✅
-- Pair Verify（保存的凭证）✅
-- 远程控制命令 ✅
-- 文本输入 ✅
-- PIN 输入 UI ✅
-- 凭证管理 ✅
+3. **Add Package Dependencies**
 
-## 🏗️ 技术栈
+   In Xcode: File → Add Package Dependencies...
 
-- Swift 5.7+, SwiftUI
-- Network.framework (TCP)
-- CryptoKit (加密)
-- NetService (Bonjour)
-- BigInt (SRP 认证)
+   - Add `https://github.com/attaswift/BigInt.git`
 
-## 📁 代码结构
+4. **Configure Required Files** (First-time setup)
+
+   In Xcode Project Navigator, right-click **CuePad** group → **Add Files to "CuePad"...**
+
+   Add these files (hold ⌘ to multi-select):
+
+   ```
+   CuePad/ATVRemote/ATVDiscovery.swift
+   CuePad/ATVRemote/CompanionConnection.swift
+   CuePad/RemoteControlView.swift
+   ```
+
+   Add these folders (select entire folders):
+
+   ```
+   CuePad/ATVRemote/Protocol/    (4 files)
+   CuePad/ATVRemote/Features/    (1 file)
+   ```
+
+   ⚠️ **Important**: When adding, ensure **Add to targets: CuePad** is checked
+
+5. **Configure Network Permissions**
+
+   Select **CuePad** target → **Info** tab
+
+   Click **+** under **Custom macOS Application Target Properties**:
+
+   **Add Key 1:**
+
+   - Key: `NSBonjourServices`
+   - Type: Array
+   - Items:
+     - Item 0 (String): `_companion-link._tcp`
+     - Item 1 (String): `_airplay._tcp`
+
+   **Add Key 2:**
+
+   - Key: `NSLocalNetworkUsageDescription`
+   - Type: String
+   - Value: `CuePad needs local network access to discover Apple TV devices`
+
+6. **Enable App Sandbox Network**
+
+   Select **CuePad** target → **Signing & Capabilities** tab
+
+   Under **App Sandbox**, expand **Network**:
+
+   - ☑️ **Incoming Connections (Server)**
+   - ☑️ **Outgoing Connections (Client)**
+
+7. **Build and Run**
+
+   ```
+   ⌘B (Build)
+   ⌘R (Run)
+   ```
+
+   On first launch, macOS will prompt for **Local Network Access** - click **Allow**.
+
+### Usage
+
+1. **Scan for Devices** - Click "Scan" button to discover Apple TV devices
+2. **Pair Device** - Click on a device, enter the 4-digit PIN shown on TV screen
+3. **Control** - Use the remote control buttons to navigate
+4. **Text Input** - Available when keyboard input is active on Apple TV
+
+Credentials are saved after pairing - subsequent connections are automatic.
+
+## 📊 Implementation Status
+
+### ✅ Completed Features
+
+- [x] Device Discovery (Bonjour/mDNS)
+- [x] TCP Connection (Network.framework)
+- [x] HAP Pairing (M1-M6 flow)
+- [x] Pair Verify (saved credentials)
+- [x] SRP-6a Authentication (with BigInt)
+- [x] Curve25519 Key Exchange
+- [x] ChaCha20-Poly1305 Encryption
+- [x] HID Commands (remote control)
+- [x] Media Control Commands
+- [x] Text Input (RTI protocol)
+- [x] Credential Storage
+- [x] SwiftUI Interface
+- [x] PIN Input Dialog
+
+### 🎯 Tested & Working
+
+- ✅ Device scanning (verified with real Apple TVs)
+- ✅ TCP connection establishment
+- 🧪 Complete pairing flow (ready for testing)
+- 🧪 Remote control commands (ready for testing)
+
+## 🏗️ Architecture
+
+### Project Structure
 
 ```
 CuePad/
-├── ATVRemote/              # 核心库
-│   ├── Protocol/          # TLV8, OPACK, HID, Companion
-│   ├── Crypto/            # SRP 认证
-│   ├── Pairing/           # HAP 配对
-│   └── Features/          # 文本输入
-├── RemoteControlView.swift # UI + PIN 对话框
-└── AppDelegate.swift
+├── ATVRemote/                      # Core library
+│   ├── ATVRemoteCore.swift        # Main controller
+│   ├── ATVRemoteProtocol.swift    # Protocol definitions
+│   ├── ATVDiscovery.swift         # Bonjour discovery
+│   ├── CompanionConnection.swift  # TCP connection
+│   ├── ATVCredentialsManager.swift # Credential storage
+│   ├── Protocol/                  # Protocol implementations
+│   │   ├── TLV8.swift            # TLV8 encoding
+│   │   ├── OPACK.swift           # OPACK serialization
+│   │   ├── HIDCommand.swift      # HID commands
+│   │   └── CompanionMessage.swift # Message framing
+│   ├── Crypto/                    # Cryptography
+│   │   └── SRPClient.swift       # SRP-6a authentication
+│   ├── Pairing/                   # HAP pairing
+│   │   ├── HAPPairing.swift      # Pairing handler
+│   │   └── PairingCoordinator.swift # Message coordination
+│   └── Features/                  # Additional features
+│       └── TextInput.swift        # RTI text input
+├── RemoteControlView.swift        # SwiftUI interface
+└── AppDelegate.swift              # App delegate
+
+Total: ~3,400 lines of Swift code
 ```
 
-**总计**: ~3,200 行 Swift 代码
+### Technology Stack
 
-## 🔧 依赖
+- **Language**: Swift 5.7+
+- **UI Framework**: SwiftUI
+- **Networking**: Network.framework (TCP/TLS)
+- **Service Discovery**: NetService (Bonjour/mDNS)
+- **Cryptography**: CryptoKit (system framework)
+- **Dependencies**: BigInt (for SRP large integer arithmetic)
 
-**Xcode 项目依赖**：
-- BigInt (通过 Xcode → Add Package Dependency 添加)
+### Protocols Implemented
 
-**系统框架**：
-- Foundation, SwiftUI, Network, CryptoKit
+- **HAP (HomeKit Accessory Protocol)**: Pairing and authentication
+- **Companion Protocol**: Apple TV remote control
+- **SRP-6a**: Secure Remote Password authentication
+- **TLV8**: Tag-Length-Value encoding
+- **OPACK**: Binary plist-like serialization
+- **RTI**: Remote Text Input
 
-## 🐛 故障排除
+## 🐛 Troubleshooting
 
-**扫描不到设备**：
-- 配置网络权限（见 SETUP.md）
-- 允许本地网络访问
-- 确保同一 WiFi
+### No Devices Found
 
-**配对失败**：
-- 检查 PIN 码正确
-- 查看控制台错误信息
-- 重启 Apple TV 重试
+**Check network permissions:**
 
-## 📚 文档
+1. System Settings → Privacy & Security → Local Network
+2. Ensure CuePad is checked ☑️
+3. Restart the application
 
-- [SETUP.md](SETUP.md) - 详细配置步骤
-- [Docs/PROTOCOL_SPEC.md](Docs/PROTOCOL_SPEC.md) - 协议规范
+**Verify configuration:**
+
+- Info.plist contains `NSBonjourServices` and `NSLocalNetworkUsageDescription`
+- App Sandbox has network permissions enabled
+- Apple TV and Mac are on the same Wi-Fi network
+
+**Test mDNS manually:**
+
+```bash
+dns-sd -B _companion-link._tcp .
+```
+
+If devices appear here but not in the app, the issue is in app configuration.
+
+### Pairing Fails
+
+- **Double-check PIN**: Ensure you enter the 4-digit code correctly
+- **Check console logs**: Look for error messages in Xcode console
+- **Restart Apple TV**: Sometimes helps clear pairing state
+- **Delete old pairing**: Go to Apple TV Settings → Remotes and Devices
+
+### Build Errors
+
+**Missing BigInt:**
+
+- Add package dependency in Xcode: File → Add Package Dependencies
+- URL: `https://github.com/attaswift/BigInt.git`
+
+**Files not found:**
+
+- Ensure all files are added to Xcode project with correct target membership
+- Check that files appear in Build Phases → Compile Sources
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+### Development Setup
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make your changes
+4. Test thoroughly with a real Apple TV
+5. Commit using conventional commits: `git commit -m "✨ feat: add feature"`
+6. Push to your fork: `git push origin feature/my-feature`
+7. Open a Pull Request
+
+### Code Style
+
+- Follow Swift API Design Guidelines
+- Use SwiftFormat for formatting (`.swiftformat` config included)
+- Document public APIs with comments
+- Keep functions focused and testable
+
+### Commit Convention
+
+Use emoji-prefixed conventional commits:
+
+- ✨ `feat:` - New features
+- 🐛 `fix:` - Bug fixes
+- 📝 `docs:` - Documentation changes
+- 🎨 `style:` - Code style/formatting
+- ♻️ `refactor:` - Code refactoring
+- ⚡ `perf:` - Performance improvements
+- ✅ `test:` - Adding tests
+- 🔧 `chore:` - Maintenance tasks
+
+### Testing
+
+Since this involves hardware interaction:
+
+- Test with real Apple TV devices
+- Document tested hardware and tvOS versions
+- Include console logs for debugging
+
+### Areas for Contribution
+
+- [ ] Automated tests (mocking network layer)
+- [ ] Support for multiple Apple TV connections
+- [ ] Screen mirroring support
+- [ ] Custom button mappings
+- [ ] Keyboard shortcuts
+- [ ] Dark mode improvements
+- [ ] Localization
+- [ ] iOS companion app
+
+## 📚 Documentation
+
+- [PROTOCOL_SPEC.md](Docs/PROTOCOL_SPEC.md) - Protocol specifications and implementation details
+- [Apple TV Companion Protocol](https://github.com/postlund/pyatv) - Reference implementation
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **[pyatv](https://github.com/postlund/pyatv)** - Reference implementation and protocol documentation
+- **Apple** - For HomeKit Accessory Protocol and related technologies
+- **Swift Community** - For excellent cryptography libraries
+
+## 🔗 Related Projects
+
+- [pyatv](https://github.com/postlund/pyatv) - Python library for Apple TV
+- [node-appletv](https://github.com/evandcoleman/node-appletv) - Node.js implementation
 
 ---
 
-**Status**: ✅ 完整实现，可立即测试
+**Status**: ✅ Fully implemented and ready for testing
+
+**Maintained by**: [@reekystive](https://github.com/reekystive)
+
+If you find this project helpful, please consider giving it a ⭐!

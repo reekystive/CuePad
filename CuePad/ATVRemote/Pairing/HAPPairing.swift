@@ -390,7 +390,7 @@ public class HAPPairing {
       serverInfo.append(signKey)
       serverInfo.append(serverID)
       serverInfo.append(serverPublicKey)
-      
+
       // Verify with Ed25519
       // let serverKey = try Curve25519.Signing.PublicKey(rawRepresentation: serverPublicKey)
       // guard serverKey.isValidSignature(serverSignature, for: serverInfo) else {

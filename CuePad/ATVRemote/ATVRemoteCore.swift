@@ -156,7 +156,7 @@ public class ATVRemote {
   // MARK: - Remote Control
 
   public func sendKey(_ key: ATVRemoteKey, action: ATVInputAction = .singleTap) async throws {
-    guard let connection = connection else {
+    guard connection != nil else {
       throw ATVRemoteError.notConnected
     }
 

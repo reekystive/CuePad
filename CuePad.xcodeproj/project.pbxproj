@@ -45,11 +45,21 @@
 			);
 			target = 05C256B62EBB8537000C2AB6 /* CuePadUITests */;
 		};
+		05CA09312EBBA0B800FF9040 /* Exceptions for "CuePad" folder in "CuePad" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 05C2569E2EBB8535000C2AB6 /* CuePad */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		05C256A12EBB8535000C2AB6 /* CuePad */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				05CA09312EBBA0B800FF9040 /* Exceptions for "CuePad" folder in "CuePad" target */,
+			);
 			path = CuePad;
 			sourceTree = "<group>";
 		};
