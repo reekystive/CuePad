@@ -1,11 +1,13 @@
+<!-- markdownlint-disable MD029 MD024 MD040 MD036 MD034 MD026 MD033 -->
+
 # CuePad
 
 A native macOS Apple TV Remote application written in pure Swift.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Swift-5.7+-orange.svg" />
-  <img src="https://img.shields.io/badge/Platform-macOS-blue.svg" />
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" />
+  <img src="https://img.shields.io/badge/Swift-5.7+-orange.svg" alt="Swift 5.7+" />
+  <img src="https://img.shields.io/badge/Platform-macOS-blue.svg" alt="macOS" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
 </p>
 
 ## ✨ Features
