@@ -1,0 +1,291 @@
+import CryptoKit
+import Foundation
+
+/// HAP (HomeKit Accessory Protocol) Pairing Handler
+public class HAPPairing {
+
+  private let device: ATVDevice
+  private var connection: CompanionConnection
+  private var srpClient: SRPClient?
+
+  // Crypto keys
+  private var ed25519PrivateKey: Curve25519.Signing.PrivateKey?
+  private var ed25519PublicKey: Data?
+  private var x25519PrivateKey: Curve25519.KeyAgreement.PrivateKey?
+  private var x25519PublicKey: Data?
+
+  private var pairingID: Data
+
+  public init(device: ATVDevice, connection: CompanionConnection) {
+    self.device = device
+    self.connection = connection
+    self.pairingID = UUID().uuidString.data(using: .utf8)!
+  }
+
+  // MARK: - Pair Setup (Initial Pairing)
+
+  /// Start pairing process with PIN code
+  public func startPairSetup(pin: String) async throws -> ATVCredentials {
+    print("🔐 Starting HAP pairing with PIN: \(pin)")
+
+    // Initialize crypto keys
+    initializeKeys()
+
+    // M1: Start Request
+    try await sendPairSetupM1()
+
+    // M2: Start Response (receive salt + server public key)
+    let m2Response = try await receiveMessage()
+    let m2TLV = TLV8.decodeTyped(m2Response.payload)
+
+    guard let salt = m2TLV[.salt],
+      let serverPublicKey = m2TLV[.publicKey]
+    else {
+      throw HAPError.invalidResponse
+    }
+
+    // Initialize SRP with PIN
+    srpClient = SRPClient(password: pin)
+    let clientPublicKey = srpClient!.generatePublicKey()
+
+    // Process server challenge
+    try srpClient!.processChallenge(salt: salt, serverPublicKey: serverPublicKey)
+
+    // M3: Verify Request (send proof)
+    let clientProof = try srpClient!.generateProof()
+    try await sendPairSetupM3(publicKey: clientPublicKey, proof: clientProof)
+
+    // M4: Verify Response (check server proof)
+    let m4Response = try await receiveMessage()
+    let m4TLV = TLV8.decodeTyped(m4Response.payload)
+
+    if let error = m4TLV[.error] {
+      let errorCode = error[0]
+      throw HAPError.pairingFailed(code: errorCode)
+    }
+
+    guard let serverProof = m4TLV[.proof] else {
+      throw HAPError.invalidResponse
+    }
+
+    let isValid = try srpClient!.verifyServerProof(serverProof)
+    guard isValid else {
+      throw HAPError.proofMismatch
+    }
+
+    print("✅ SRP authentication successful")
+
+    // M5: Exchange Request (send our public keys)
+    try await sendPairSetupM5()
+
+    // M6: Exchange Response (receive server keys)
+    let m6Response = try await receiveMessage()
+    let m6TLV = TLV8.decodeTyped(m6Response.payload)
+
+    guard let encryptedData = m6TLV[.encryptedData] else {
+      throw HAPError.invalidResponse
+    }
+
+    // Decrypt and extract server credentials
+    let serverCredentials = try decryptM6(encryptedData)
+
+    print("✅ HAP pairing complete!")
+
+    // Create credentials object
+    let credentials = ATVCredentials(
+      identifier: device.id,
+      credentials: ed25519PublicKey!.base64EncodedString(),
+      Companion: serverCredentials
+    )
+
+    return credentials
+  }
+
+  // MARK: - Pair Verify (Subsequent Connections)
+
+  /// Verify existing credentials
+  public func startPairVerify(credentials: ATVCredentials) async throws {
+    print("🔐 Starting HAP pair verify")
+
+    // Initialize crypto keys
+    initializeKeys()
+
+    // PV1: Verify Start Request
+    try await sendPairVerifyPV1()
+
+    // PV2: Verify Start Response
+    let pv2Response = try await receiveMessage()
+    // TODO: Process verify response
+
+    // PV3: Verify Finish Request
+    try await sendPairVerifyPV3()
+
+    // PV4: Verify Finish Response
+    let pv4Response = try await receiveMessage()
+    // TODO: Complete verification
+
+    print("✅ HAP pair verify complete")
+  }
+
+  // MARK: - Message Sending
+
+  private func sendPairSetupM1() async throws {
+    let tlv = TLV8.encode([
+      .seqNo: TLV8.data(from: TLV8.State.m1.rawValue),
+      .method: TLV8.data(from: TLV8.Method.pairSetup.rawValue),
+    ])
+
+    let message = CompanionMessage(frameType: .ps_start, payload: tlv)
+    try await connection.send(message)
+
+    print("📤 Sent M1: Pair Setup Start")
+  }
+
+  private func sendPairSetupM3(publicKey: Data, proof: Data) async throws {
+    let tlv = TLV8.encode([
+      .seqNo: TLV8.data(from: TLV8.State.m3.rawValue),
+      .publicKey: publicKey,
+      .proof: proof,
+    ])
+
+    let message = CompanionMessage(frameType: .ps_next, payload: tlv)
+    try await connection.send(message)
+
+    print("📤 Sent M3: Pair Setup Verify")
+  }
+
+  private func sendPairSetupM5() async throws {
+    guard let sessionKey = srpClient?.getSessionKey() else {
+      throw HAPError.invalidState
+    }
+
+    // Derive encryption key
+    let encryptKey = try SRPClient.hkdfExpand(
+      salt: "Pair-Setup-Encrypt-Salt",
+      info: "Pair-Setup-Encrypt-Info",
+      secret: sessionKey
+    )
+
+    // Create sub-TLV with our credentials
+    let subTLV = TLV8.encode([
+      .identifier: pairingID,
+      .publicKey: ed25519PublicKey!,
+      .signature: Data(),  // TODO: Sign with Ed25519
+    ])
+
+    // Encrypt sub-TLV
+    let encrypted = try encryptData(subTLV, key: encryptKey, nonce: "PS-Msg05".data(using: .utf8)!)
+
+    let tlv = TLV8.encode([
+      .seqNo: TLV8.data(from: TLV8.State.m5.rawValue),
+      .encryptedData: encrypted,
+    ])
+
+    let message = CompanionMessage(frameType: .ps_next, payload: tlv)
+    try await connection.send(message)
+
+    print("📤 Sent M5: Pair Setup Exchange")
+  }
+
+  private func sendPairVerifyPV1() async throws {
+    guard let publicKey = x25519PublicKey else {
+      throw HAPError.invalidState
+    }
+
+    let tlv = TLV8.encode([
+      .seqNo: TLV8.data(from: TLV8.State.m1.rawValue),
+      .publicKey: publicKey,
+    ])
+
+    let message = CompanionMessage(frameType: .pv_start, payload: tlv)
+    try await connection.send(message)
+
+    print("📤 Sent PV1: Pair Verify Start")
+  }
+
+  private func sendPairVerifyPV3() async throws {
+    // TODO: Implement PV3
+    let tlv = TLV8.encode([
+      .seqNo: TLV8.data(from: TLV8.State.m3.rawValue)
+    ])
+
+    let message = CompanionMessage(frameType: .pv_next, payload: tlv)
+    try await connection.send(message)
+
+    print("📤 Sent PV3: Pair Verify Finish")
+  }
+
+  // MARK: - Message Receiving
+
+  private func receiveMessage() async throws -> CompanionMessage {
+    // TODO: Implement proper message waiting
+    // For now, this is a placeholder
+    try await Task.sleep(nanoseconds: 100_000_000)
+
+    // This will be handled by connection.onMessageReceived callback
+    throw HAPError.notImplemented
+  }
+
+  // MARK: - Crypto Helpers
+
+  private func initializeKeys() {
+    // Generate Ed25519 signing keys
+    let ed25519 = Curve25519.Signing.PrivateKey()
+    self.ed25519PrivateKey = ed25519
+    self.ed25519PublicKey = ed25519.publicKey.rawRepresentation
+
+    // Generate X25519 key agreement keys
+    let x25519 = Curve25519.KeyAgreement.PrivateKey()
+    self.x25519PrivateKey = x25519
+    self.x25519PublicKey = x25519.publicKey.rawRepresentation
+
+    print("🔑 Generated crypto keys")
+  }
+
+  private func encryptData(_ data: Data, key: Data, nonce: Data) throws -> Data {
+    // ChaCha20-Poly1305 encryption
+    let symmetricKey = SymmetricKey(data: key)
+
+    // Pad nonce to 12 bytes if needed
+    var nonceData = nonce
+    while nonceData.count < 12 {
+      nonceData.append(0)
+    }
+
+    let chachaNonce = try ChaChaPoly.Nonce(data: nonceData.prefix(12))
+    let sealedBox = try ChaChaPoly.seal(data, using: symmetricKey, nonce: chachaNonce)
+
+    return sealedBox.ciphertext + sealedBox.tag
+  }
+
+  private func decryptM6(_ encryptedData: Data) throws -> String {
+    // TODO: Implement M6 decryption
+    // For now, return placeholder
+    return "COMPANION_CREDENTIALS_PLACEHOLDER"
+  }
+
+  // MARK: - Errors
+
+  public enum HAPError: Error, LocalizedError {
+    case invalidState
+    case invalidResponse
+    case pairingFailed(code: UInt8)
+    case proofMismatch
+    case notImplemented
+
+    public var errorDescription: String? {
+      switch self {
+      case .invalidState:
+        return "HAP pairing in invalid state"
+      case .invalidResponse:
+        return "Invalid response from device"
+      case .pairingFailed(let code):
+        return "Pairing failed with error code: \(code)"
+      case .proofMismatch:
+        return "Proof verification failed"
+      case .notImplemented:
+        return "Feature not yet implemented"
+      }
+    }
+  }
+}

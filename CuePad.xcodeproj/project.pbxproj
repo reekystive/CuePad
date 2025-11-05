@@ -27,7 +27,22 @@
 		05C2569F2EBB8535000C2AB6 /* CuePad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CuePad.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05C256AD2EBB8537000C2AB6 /* CuePadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CuePadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		05C256B72EBB8537000C2AB6 /* CuePadUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CuePadUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		05C2573A2EBB9755000C2AB6 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		05C2573F2EBB9764000C2AB6 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+		05C2574D2EBB9BBD000C2AB6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		05C2574E2EBB9BBD000C2AB6 /* .swift-version */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".swift-version"; sourceTree = "<group>"; };
+		05C2574F2EBB9BBD000C2AB6 /* .swiftformat */ = {isa = PBXFileReference; lastKnownFileType = text; path = .swiftformat; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		05C2573E2EBB9755000C2AB6 /* Exceptions for "Docs" folder in "CuePadUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				PROTOCOL_SPEC.md,
+			);
+			target = 05C256B62EBB8537000C2AB6 /* CuePadUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		05C256A12EBB8535000C2AB6 /* CuePad */ = {
@@ -43,6 +58,14 @@
 		05C256BA2EBB8537000C2AB6 /* CuePadUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = CuePadUITests;
+			sourceTree = "<group>";
+		};
+		05C2573D2EBB9755000C2AB6 /* Docs */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				05C2573E2EBB9755000C2AB6 /* Exceptions for "Docs" folder in "CuePadUITests" target */,
+			);
+			path = Docs;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,10 +98,16 @@
 		05C256962EBB8535000C2AB6 = {
 			isa = PBXGroup;
 			children = (
+				05C256A02EBB8535000C2AB6 /* Products */,
+				05C2573D2EBB9755000C2AB6 /* Docs */,
 				05C256A12EBB8535000C2AB6 /* CuePad */,
 				05C256B02EBB8537000C2AB6 /* CuePadTests */,
 				05C256BA2EBB8537000C2AB6 /* CuePadUITests */,
-				05C256A02EBB8535000C2AB6 /* Products */,
+				05C2573F2EBB9764000C2AB6 /* Package.swift */,
+				05C2573A2EBB9755000C2AB6 /* README.md */,
+				05C2574D2EBB9BBD000C2AB6 /* .gitignore */,
+				05C2574E2EBB9BBD000C2AB6 /* .swift-version */,
+				05C2574F2EBB9BBD000C2AB6 /* .swiftformat */,
 			);
 			sourceTree = "<group>";
 		};
@@ -155,6 +184,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				05C256BA2EBB8537000C2AB6 /* CuePadUITests */,
+				05C2573D2EBB9755000C2AB6 /* Docs */,
 			);
 			name = CuePadUITests;
 			packageProductDependencies = (
@@ -392,12 +422,24 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CuePad/CuePad.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CuePad/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = MainMenu;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -423,12 +465,24 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CuePad/CuePad.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CuePad/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = MainMenu;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
