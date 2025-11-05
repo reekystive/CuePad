@@ -28,6 +28,7 @@ public class ATVRemote {
   private var connection: CompanionConnection?
   private var credentialsManager: ATVCredentialsManager
   private var textInput: CompanionTextInput?
+  private var hapPairing: HAPPairing?
 
   public weak var delegate: ATVRemoteDelegate?
 
@@ -66,6 +67,37 @@ public class ATVRemote {
 
     discovery.stopDiscovery()
     return discoveredDevices
+  }
+
+  // MARK: - Pairing
+
+  /// Pair with device using PIN code
+  public func pairDevice(pin: String) async throws -> ATVCredentials {
+    guard let connection = connection, let device = currentDevice else {
+      throw ATVRemoteError.notConnected
+    }
+
+    let pairing = HAPPairing(device: device, connection: connection)
+    hapPairing = pairing
+
+    let credentials = try await pairing.startPairSetup(pin: pin)
+    return credentials
+  }
+
+  /// Connect with saved credentials
+  public func connectWithCredentials(to device: ATVDevice, credentials: ATVCredentials) async throws {
+    // First establish TCP connection
+    try await connect(to: device)
+
+    // Then perform pair verify
+    guard let connection = connection else {
+      throw ATVRemoteError.notConnected
+    }
+
+    let pairing = HAPPairing(device: device, connection: connection)
+    try await pairing.startPairVerify(credentials: credentials)
+
+    print("✅ Authenticated with saved credentials")
   }
 
   // MARK: - Connection

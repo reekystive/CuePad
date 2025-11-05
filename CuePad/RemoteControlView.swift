@@ -9,6 +9,9 @@ class RemoteViewModel: ObservableObject {
   @Published var currentDevice: ATVDevice?
   @Published var statusMessage = "Ready"
   @Published var errorMessage: String?
+  @Published var showPinDialog = false
+  @Published var pinCode = ""
+  @Published var isPairing = false
 
   private let remote = ATVRemote()
   private let credManager = ATVCredentialsManager()
@@ -45,14 +48,58 @@ class RemoteViewModel: ObservableObject {
       errorMessage = nil
 
       do {
-        try await remote.connect(to: device)
-        currentDevice = device
-        isConnected = true
-        statusMessage = "Connected to \(device.name)"
+        // Check if we have saved credentials
+        if let savedCreds = credManager.loadDeviceCredentials(identifier: device.id) {
+          // Use saved credentials
+          try await remote.connectWithCredentials(to: device, credentials: savedCreds)
+          currentDevice = device
+          isConnected = true
+          statusMessage = "Connected to \(device.name)"
+        } else {
+          // Need to pair first
+          try await remote.connect(to: device)
+          currentDevice = device
+
+          // Show PIN dialog for pairing
+          showPinDialog = true
+          statusMessage = "Pairing required - check Apple TV screen for PIN"
+        }
       } catch {
         errorMessage = "Connection failed: \(error.localizedDescription)"
         statusMessage = "Connection failed"
       }
+    }
+  }
+
+  func startPairing() {
+    guard !pinCode.isEmpty, pinCode.count == 4 else {
+      errorMessage = "Please enter 4-digit PIN"
+      return
+    }
+
+    Task {
+      isPairing = true
+      statusMessage = "Pairing with PIN \(pinCode)..."
+
+      do {
+        let credentials = try await remote.pairDevice(pin: pinCode)
+
+        // Save credentials
+        if let device = currentDevice {
+          try credManager.saveCredentials(credentials)
+          try credManager.saveDeviceCredentials(credentials, deviceName: device.name)
+
+          isConnected = true
+          showPinDialog = false
+          pinCode = ""
+          statusMessage = "Paired and connected successfully!"
+        }
+      } catch {
+        errorMessage = "Pairing failed: \(error.localizedDescription)"
+        statusMessage = "Pairing failed"
+      }
+
+      isPairing = false
     }
   }
 
@@ -325,6 +372,62 @@ struct RemoteControlView: View {
       .frame(minWidth: 400)
     }
     .frame(minWidth: 700, minHeight: 500)
+    .sheet(isPresented: $viewModel.showPinDialog) {
+      PinInputView(
+        pinCode: $viewModel.pinCode,
+        isPairing: viewModel.isPairing,
+        onSubmit: { viewModel.startPairing() },
+        onCancel: { viewModel.showPinDialog = false }
+      )
+    }
+  }
+}
+
+// MARK: - PIN Input Dialog
+
+struct PinInputView: View {
+  @Binding var pinCode: String
+  let isPairing: Bool
+  let onSubmit: () -> Void
+  let onCancel: () -> Void
+
+  var body: some View {
+    VStack(spacing: 20) {
+      Text("Enter PIN from Apple TV")
+        .font(.headline)
+
+      Text("A 4-digit PIN should be displayed on your Apple TV screen")
+        .font(.caption)
+        .foregroundColor(.secondary)
+        .multilineTextAlignment(.center)
+
+      TextField("PIN Code", text: $pinCode)
+        .textFieldStyle(.roundedBorder)
+        .font(.system(size: 24, weight: .medium, design: .monospaced))
+        .multilineTextAlignment(.center)
+        .frame(width: 150)
+        .disabled(isPairing)
+
+      if isPairing {
+        ProgressView("Pairing...")
+          .padding()
+      }
+
+      HStack(spacing: 12) {
+        Button("Cancel") {
+          onCancel()
+        }
+        .disabled(isPairing)
+
+        Button("Pair") {
+          onSubmit()
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(pinCode.count != 4 || isPairing)
+      }
+    }
+    .padding(30)
+    .frame(width: 350)
   }
 }
 

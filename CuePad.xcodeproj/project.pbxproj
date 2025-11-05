@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		05CA09302EBB9DFA00FF9040 /* BigInt in Frameworks */ = {isa = PBXBuildFile; productRef = 05CA092F2EBB9DFA00FF9040 /* BigInt */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		05C256AE2EBB8537000C2AB6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -28,7 +32,6 @@
 		05C256AD2EBB8537000C2AB6 /* CuePadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CuePadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		05C256B72EBB8537000C2AB6 /* CuePadUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CuePadUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		05C2573A2EBB9755000C2AB6 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		05C2573F2EBB9764000C2AB6 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		05C2574D2EBB9BBD000C2AB6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		05C2574E2EBB9BBD000C2AB6 /* .swift-version */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".swift-version"; sourceTree = "<group>"; };
 		05C2574F2EBB9BBD000C2AB6 /* .swiftformat */ = {isa = PBXFileReference; lastKnownFileType = text; path = .swiftformat; sourceTree = "<group>"; };
@@ -75,6 +78,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05CA09302EBB9DFA00FF9040 /* BigInt in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,7 +107,6 @@
 				05C256A12EBB8535000C2AB6 /* CuePad */,
 				05C256B02EBB8537000C2AB6 /* CuePadTests */,
 				05C256BA2EBB8537000C2AB6 /* CuePadUITests */,
-				05C2573F2EBB9764000C2AB6 /* Package.swift */,
 				05C2573A2EBB9755000C2AB6 /* README.md */,
 				05C2574D2EBB9BBD000C2AB6 /* .gitignore */,
 				05C2574E2EBB9BBD000C2AB6 /* .swift-version */,
@@ -141,6 +144,7 @@
 			);
 			name = CuePad;
 			packageProductDependencies = (
+				05CA092F2EBB9DFA00FF9040 /* BigInt */,
 			);
 			productName = CuePad;
 			productReference = 05C2569F2EBB8535000C2AB6 /* CuePad.app */;
@@ -225,6 +229,9 @@
 			);
 			mainGroup = 05C256962EBB8535000C2AB6;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				05CA092E2EBB9DFA00FF9040 /* XCRemoteSwiftPackageReference "BigInt" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 05C256A02EBB8535000C2AB6 /* Products */;
 			projectDirPath = "";
@@ -619,6 +626,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		05CA092E2EBB9DFA00FF9040 /* XCRemoteSwiftPackageReference "BigInt" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/attaswift/BigInt.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		05CA092F2EBB9DFA00FF9040 /* BigInt */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 05CA092E2EBB9DFA00FF9040 /* XCRemoteSwiftPackageReference "BigInt" */;
+			productName = BigInt;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 05C256972EBB8535000C2AB6 /* Project object */;
 }

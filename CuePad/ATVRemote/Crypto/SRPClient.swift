@@ -5,7 +5,6 @@ import Foundation
 /// SRP (Secure Remote Password) protocol implementation for HAP
 /// Based on SRP-6a specification
 public class SRPClient {
-
   // SRP-3072 constants (from RFC 5054)
   private static let prime3072 = BigUInt(
     "FFFFFFFF" + "FFFFFFFF" + "C90FDAA2" + "2168C234" + "C4C6628B" + "80DC1CD1" + "29024E08"
@@ -41,8 +40,8 @@ public class SRPClient {
     self.password = password
 
     // Generate random private key (a)
-    let randomBytes = (0..<32).map { _ in UInt8.random(in: 0...255) }
-    self.privateKey = BigUInt(Data(randomBytes))
+    let randomBytes = (0 ..< 32).map { _ in UInt8.random(in: 0 ... 255) }
+    privateKey = BigUInt(Data(randomBytes))
   }
 
   // MARK: - SRP Steps
@@ -79,8 +78,8 @@ public class SRPClient {
 
   private func computeSharedSecret() throws {
     guard let B = serverPublicKey,
-      let A = publicKey,
-      let salt = salt
+          let A = publicKey,
+          let salt = salt
     else {
       throw SRPError.invalidState
     }
@@ -125,22 +124,22 @@ public class SRPClient {
     let exponent = (privateKey + u * x) % (N - 1)
     let S = base.power(exponent, modulus: N)
 
-    self.sharedSecret = S
+    sharedSecret = S
 
     // K = H(S)
     var sBytes = S.serialize()
     while sBytes.count < 384 {
       sBytes.insert(0, at: 0)
     }
-    self.sessionKey = Data(SHA512.hash(data: Data(sBytes)))
+    sessionKey = Data(SHA512.hash(data: Data(sBytes)))
   }
 
   /// Step 3: Generate proof M1 = H(H(N) XOR H(g) | H(username) | salt | A | B | K)
   public func generateProof() throws -> Data {
     guard let A = publicKey,
-      let B = serverPublicKey,
-      let salt = salt,
-      let K = sessionKey
+          let B = serverPublicKey,
+          let salt = salt,
+          let K = sessionKey
     else {
       throw SRPError.invalidState
     }
@@ -171,7 +170,7 @@ public class SRPClient {
   /// Verify server proof M2 = H(A | M1 | K)
   public func verifyServerProof(_ serverProof: Data) throws -> Bool {
     guard let A = publicKey,
-      let K = sessionKey
+          let K = sessionKey
     else {
       throw SRPError.invalidState
     }
@@ -215,21 +214,22 @@ public class SRPClient {
 
 // MARK: - HKDF Extension
 
-extension SRPClient {
+public extension SRPClient {
   /// HKDF key derivation
-  public static func hkdfExpand(salt: String, info: String, secret: Data, length: Int = 32) throws
+  static func hkdfExpand(salt: String, info: String, secret: Data, length: Int = 32) throws
     -> Data
   {
     let saltData = salt.data(using: .utf8)!
     let infoData = info.data(using: .utf8)!
 
-    let derived = HKDF<SHA512>.expand(
-      inputKeyMaterial: SymmetricKey(data: secret),
+    let inputKey = SymmetricKey(data: secret)
+    let derived = HKDF<SHA512>.deriveKey(
+      inputKeyMaterial: inputKey,
       salt: saltData,
       info: infoData,
       outputByteCount: length
     )
 
-    return Data(derived)
+    return derived.withUnsafeBytes { Data($0) }
   }
 }
