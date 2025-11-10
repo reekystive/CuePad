@@ -10,14 +10,14 @@ public protocol ATVRemoteDelegate: AnyObject {
 }
 
 // Make delegate methods optional
-public extension ATVRemoteDelegate {
-  func remoteDidConnect() {}
-  func remoteDidDisconnect() {}
-  func remoteConnectionLost() {}
-  func remoteKeyboardFocusChanged(
+extension ATVRemoteDelegate {
+  public func remoteDidConnect() {}
+  public func remoteDidDisconnect() {}
+  public func remoteConnectionLost() {}
+  public func remoteKeyboardFocusChanged(
     oldState _: ATVKeyboardFocusState, newState _: ATVKeyboardFocusState
   ) {}
-  func remotePowerStateChanged(oldState _: String, newState _: String) {}
+  public func remotePowerStateChanged(oldState _: String, newState _: String) {}
 }
 
 /// Main Apple TV Remote control class (native implementation)
@@ -63,7 +63,7 @@ public class ATVRemote {
     discovery.startDiscovery()
 
     // Wait for discovery to find devices
-    try await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+    try await Task.sleep(nanoseconds: 3_000_000_000)  // 3 seconds
 
     discovery.stopDiscovery()
     return discoveredDevices
@@ -85,7 +85,8 @@ public class ATVRemote {
   }
 
   /// Connect with saved credentials
-  public func connectWithCredentials(to device: ATVDevice, credentials: ATVCredentials) async throws {
+  public func connectWithCredentials(to device: ATVDevice, credentials: ATVCredentials) async throws
+  {
     // First establish TCP connection
     try await connect(to: device)
 
@@ -186,7 +187,7 @@ public class ATVRemote {
       try await connection.send(pressMessage)
 
       // Small delay
-      try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+      try await Task.sleep(nanoseconds: 50_000_000)  // 50ms
 
       // Release
       let releaseMessage = try CompanionMessage.hidEvent(command: command, pressed: false)

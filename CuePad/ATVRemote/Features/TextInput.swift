@@ -51,7 +51,7 @@ public class CompanionTextInput {
       "_t": "_tiStart",
       "_tiData": [
         "text": text,
-        "clear": true, // Clear previous input
+        "clear": true,  // Clear previous input
       ],
     ]
 
@@ -71,7 +71,7 @@ public class CompanionTextInput {
       "_t": "_tiStart",
       "_tiData": [
         "text": text,
-        "clear": false, // Append to existing
+        "clear": false,  // Append to existing
       ],
     ]
 
@@ -104,7 +104,7 @@ public class CompanionTextInput {
   /// Stop text input session
   public func stopTextInput() async throws {
     let payload: [String: Any] = [
-      "_t": "_tiStopped",
+      "_t": "_tiStopped"
     ]
 
     let data = try OPACK.encode(payload)

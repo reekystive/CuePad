@@ -39,7 +39,7 @@ public class HAPPairing {
     let m2TLV = TLV8.decodeTyped(m2Response.payload)
 
     guard let salt = m2TLV[.salt],
-          let serverPublicKey = m2TLV[.publicKey]
+      let serverPublicKey = m2TLV[.publicKey]
     else {
       throw HAPError.invalidResponse
     }
@@ -115,7 +115,7 @@ public class HAPPairing {
 
     let pv2TLV = TLV8.decodeTyped(pv2Response.payload)
     guard let serverPublicKey = pv2TLV[.publicKey],
-          let encryptedData = pv2TLV[.encryptedData]
+      let encryptedData = pv2TLV[.encryptedData]
     else {
       throw HAPError.invalidResponse
     }
@@ -130,7 +130,8 @@ public class HAPPairing {
     try verifyServer(encryptedData: encryptedData, decryptKey: decryptKey, credentials: credentials)
 
     // PV3: Verify Finish Request
-    let pv3 = try createPairVerifyPV3(encryptKey: encryptKey, credentials: credentials, serverPublicKey: serverPublicKey)
+    let pv3 = try createPairVerifyPV3(
+      encryptKey: encryptKey, credentials: credentials, serverPublicKey: serverPublicKey)
     let pv4Response = try await coordinator.sendAndWait(pv3)
 
     // Check for errors
@@ -229,7 +230,9 @@ public class HAPPairing {
     return CompanionMessage(frameType: .pv_start, payload: tlv)
   }
 
-  private func createPairVerifyPV3(encryptKey: Data, credentials _: ATVCredentials, serverPublicKey: Data) throws -> CompanionMessage {
+  private func createPairVerifyPV3(
+    encryptKey: Data, credentials _: ATVCredentials, serverPublicKey: Data
+  ) throws -> CompanionMessage {
     // Create client info for signature
     var clientInfo = Data()
     clientInfo.append(x25519PublicKey!)
@@ -300,13 +303,16 @@ public class HAPPairing {
     return (encryptKey, decryptKey)
   }
 
-  private func verifyServer(encryptedData: Data, decryptKey: Data, credentials _: ATVCredentials) throws {
+  private func verifyServer(encryptedData: Data, decryptKey: Data, credentials _: ATVCredentials)
+    throws
+  {
     // Decrypt server data
-    let decrypted = try decryptData(encryptedData, key: decryptKey, nonce: "PV-Msg02".data(using: .utf8)!)
+    let decrypted = try decryptData(
+      encryptedData, key: decryptKey, nonce: "PV-Msg02".data(using: .utf8)!)
     let tlv = TLV8.decodeTyped(decrypted)
 
-    guard let _ = tlv[.identifier],
-          let _ = tlv[.signature]
+    guard tlv[.identifier] != nil,
+      tlv[.signature] != nil
     else {
       throw HAPError.invalidResponse
     }
@@ -367,14 +373,15 @@ public class HAPPairing {
     )
 
     // Decrypt
-    let decrypted = try decryptData(encryptedData, key: decryptKey, nonce: "PS-Msg06".data(using: .utf8)!)
+    let decrypted = try decryptData(
+      encryptedData, key: decryptKey, nonce: "PS-Msg06".data(using: .utf8)!)
 
     // Parse TLV
     let tlv = TLV8.decodeTyped(decrypted)
 
     guard let serverID = tlv[.identifier],
-          let serverPublicKey = tlv[.publicKey],
-          let _ = tlv[.signature]
+      let serverPublicKey = tlv[.publicKey],
+      tlv[.signature] != nil
     else {
       throw HAPError.invalidResponse
     }
@@ -418,7 +425,7 @@ public class HAPPairing {
         return "HAP pairing in invalid state"
       case .invalidResponse:
         return "Invalid response from device"
-      case let .pairingFailed(code):
+      case .pairingFailed(let code):
         return "Pairing failed with error code: \(code)"
       case .proofMismatch:
         return "Proof verification failed"

@@ -5,10 +5,12 @@ words:
   - ciphertext
   - Creds
   - cuepad
+  - debugapp
   - hkdf
   - HKDF
   - ltpk
   - LTPK
+  - miniaturizable
   - ntoa
   - Nxor
   - OPACK
@@ -17,5 +19,6 @@ words:
   - rpmd
   - siri
   - sockaddr
+  - subheadline
   - swiftformat
   - xcodeproj

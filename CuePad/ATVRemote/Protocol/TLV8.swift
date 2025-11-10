@@ -108,7 +108,7 @@ public enum TLV8 {
 
       guard position + length <= data.count else { break }
 
-      let value = data[position ..< position + length]
+      let value = data[position..<position + length]
       position += length
 
       // Concatenate values with same tag (for values > 255 bytes)
@@ -163,9 +163,9 @@ public enum TLV8 {
 
 // MARK: - Debug Description
 
-public extension TLV8 {
+extension TLV8 {
   /// Create human-readable string of TLV8 data for debugging
-  static func stringify(_ data: Data) -> String {
+  public static func stringify(_ data: Data) -> String {
     let dict = decodeTyped(data)
     var parts: [String] = []
 

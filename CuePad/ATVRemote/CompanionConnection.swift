@@ -27,38 +27,61 @@ public class CompanionConnection {
 
     self.connection = connection
 
-    connection.stateUpdateHandler = { [weak self] state in
-      self?.handleStateUpdate(state)
+    let defaultStateHandler: @Sendable (NWConnection.State) -> Void = { [weak self] state in
+      guard let self = self else { return }
+      Task { @MainActor in
+        self.handleStateUpdate(state)
+      }
     }
 
+    connection.stateUpdateHandler = defaultStateHandler
     connection.start(queue: queue)
 
-    // Wait for connection
-    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-      var resumed = false
+    do {
+      try await waitForReady(connection: connection, defaultHandler: defaultStateHandler)
+    } catch {
+      connection.cancel()
+      throw error
+    }
+  }
 
-      connection.stateUpdateHandler = { [weak self] state in
-        guard !resumed else { return }
+  private func waitForReady(
+    connection: NWConnection,
+    defaultHandler: @Sendable @escaping (NWConnection.State) -> Void
+  ) async throws {
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+      let waitingHandler: @Sendable (NWConnection.State) -> Void = { [weak self] state in
+        guard let self = self else { return }
 
         switch state {
         case .ready:
-          resumed = true
-          self?.isConnected = true
-          self?.startReceiving()
+          connection.stateUpdateHandler = defaultHandler
+          Task { @MainActor in
+            self.startReceiving()
+            self.handleStateUpdate(state)
+          }
           continuation.resume()
 
-        case let .failed(error):
-          resumed = true
+        case .failed(let error):
+          connection.stateUpdateHandler = defaultHandler
+          Task { @MainActor in
+            self.handleStateUpdate(state)
+          }
           continuation.resume(throwing: error)
 
         case .cancelled:
-          resumed = true
+          connection.stateUpdateHandler = defaultHandler
+          Task { @MainActor in
+            self.handleStateUpdate(state)
+          }
           continuation.resume(throwing: CompanionError.connectionCancelled)
 
         default:
           break
         }
       }
+
+      connection.stateUpdateHandler = waitingHandler
     }
   }
 
@@ -117,23 +140,30 @@ public class CompanionConnection {
       guard let self = self else { return }
 
       if let data = data, !data.isEmpty {
-        self.receiveBuffer.append(data)
-        self.processReceiveBuffer()
+        Task { @MainActor in
+          self.receiveBuffer.append(data)
+          self.processReceiveBuffer()
+        }
       }
 
       if let error = error {
-        print("❌ Receive error: \(error)")
-        self.onDisconnected?(error)
+        Task { @MainActor in
+          print("❌ Receive error: \(error)")
+          self.onDisconnected?(error)
+        }
         return
       }
 
       if isComplete {
-        self.onDisconnected?(nil)
+        Task { @MainActor in
+          self.onDisconnected?(nil)
+        }
         return
       }
 
-      // Continue receiving
-      self.startReceiving()
+      Task { @MainActor in
+        self.startReceiving()
+      }
     }
   }
 
@@ -159,7 +189,7 @@ public class CompanionConnection {
       isConnected = true
       onConnected?()
 
-    case let .failed(error):
+    case .failed(let error):
       print("❌ Connection failed: \(error)")
       isConnected = false
       onDisconnected?(error)
@@ -169,7 +199,7 @@ public class CompanionConnection {
       isConnected = false
       onDisconnected?(nil)
 
-    case let .waiting(error):
+    case .waiting(let error):
       print("⏳ Waiting: \(error)")
 
     default:

@@ -66,23 +66,23 @@ public enum ATVMessageData: Codable {
     var container = encoder.singleValueContainer()
 
     switch self {
-    case let .string(value):
+    case .string(let value):
       try container.encode(value)
-    case let .array(value):
+    case .array(let value):
       try container.encode(value)
-    case let .object(value):
+    case .object(let value):
       try container.encode(value)
-    case let .boolean(value):
+    case .boolean(let value):
       try container.encode(value)
-    case let .keyCommand(value):
+    case .keyCommand(let value):
       try container.encode(value)
-    case let .textCommand(value):
+    case .textCommand(let value):
       try container.encode(value)
-    case let .credentials(value):
+    case .credentials(let value):
       try container.encode(value)
-    case let .powerState(value):
+    case .powerState(let value):
       try container.encode(value)
-    case let .keyboardState(value):
+    case .keyboardState(let value):
       try container.encode(value)
     }
   }
@@ -233,31 +233,31 @@ public enum ATVCommand {
     case .scan, .disconnect, .isConnected, .pingDevice, .kbFocus, .getText, .quit:
       return ATVClientMessage(cmd: commandName, data: nil)
 
-    case let .startPair(deviceName):
+    case .startPair(let deviceName):
       return ATVClientMessage(cmd: commandName, data: .string(deviceName))
 
-    case let .finishPair1(pin), let .finishPair2(pin):
+    case .finishPair1(let pin), .finishPair2(let pin):
       return ATVClientMessage(cmd: commandName, data: .string(pin))
 
-    case let .connect(credentials):
+    case .connect(let credentials):
       return ATVClientMessage(cmd: commandName, data: .credentials(credentials))
 
-    case let .key(key):
+    case .key(let key):
       return ATVClientMessage(cmd: commandName, data: .string(key))
 
-    case let .keyWithAction(key, action):
+    case .keyWithAction(let key, let action):
       return ATVClientMessage(
         cmd: commandName,
         data: .keyCommand(ATVKeyCommand(key: key, taction: action.rawValue))
       )
 
-    case let .setText(text):
+    case .setText(let text):
       return ATVClientMessage(
         cmd: commandName,
         data: .textCommand(ATVTextCommand(text: text))
       )
 
-    case let .echo(data):
+    case .echo(let data):
       return ATVClientMessage(cmd: commandName, data: .string(data))
     }
   }

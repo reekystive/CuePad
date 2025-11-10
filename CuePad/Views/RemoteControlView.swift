@@ -431,8 +431,34 @@ struct PinInputView: View {
   }
 }
 
+// MARK: - Main App View with Debug Panel Toggle
+
+struct MainAppView: View {
+  @State private var showDebugPanel = false
+
+  var body: some View {
+    Group {
+      if showDebugPanel {
+        DebugPanelView()
+      } else {
+        RemoteControlView()
+      }
+    }
+    .toolbar {
+      ToolbarItem(placement: .primaryAction) {
+        Button {
+          showDebugPanel.toggle()
+        } label: {
+          Image(systemName: showDebugPanel ? "eye.slash" : "eye")
+        }
+        .help(showDebugPanel ? "Hide Debug Panel" : "Show Debug Panel")
+      }
+    }
+  }
+}
+
 // MARK: - Preview
 
 #Preview {
-  RemoteControlView()
+  MainAppView()
 }

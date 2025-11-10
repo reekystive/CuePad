@@ -40,7 +40,7 @@ public class SRPClient {
     self.password = password
 
     // Generate random private key (a)
-    let randomBytes = (0 ..< 32).map { _ in UInt8.random(in: 0 ... 255) }
+    let randomBytes = (0..<32).map { _ in UInt8.random(in: 0...255) }
     privateKey = BigUInt(Data(randomBytes))
   }
 
@@ -78,8 +78,8 @@ public class SRPClient {
 
   private func computeSharedSecret() throws {
     guard let B = serverPublicKey,
-          let A = publicKey,
-          let salt = salt
+      let A = publicKey,
+      let salt = salt
     else {
       throw SRPError.invalidState
     }
@@ -137,9 +137,9 @@ public class SRPClient {
   /// Step 3: Generate proof M1 = H(H(N) XOR H(g) | H(username) | salt | A | B | K)
   public func generateProof() throws -> Data {
     guard let A = publicKey,
-          let B = serverPublicKey,
-          let salt = salt,
-          let K = sessionKey
+      let B = serverPublicKey,
+      let salt = salt,
+      let K = sessionKey
     else {
       throw SRPError.invalidState
     }
@@ -170,7 +170,7 @@ public class SRPClient {
   /// Verify server proof M2 = H(A | M1 | K)
   public func verifyServerProof(_ serverProof: Data) throws -> Bool {
     guard let A = publicKey,
-          let K = sessionKey
+      let K = sessionKey
     else {
       throw SRPError.invalidState
     }
@@ -214,9 +214,9 @@ public class SRPClient {
 
 // MARK: - HKDF Extension
 
-public extension SRPClient {
+extension SRPClient {
   /// HKDF key derivation
-  static func hkdfExpand(salt: String, info: String, secret: Data, length: Int = 32) throws
+  public static func hkdfExpand(salt: String, info: String, secret: Data, length: Int = 32) throws
     -> Data
   {
     let saltData = salt.data(using: .utf8)!

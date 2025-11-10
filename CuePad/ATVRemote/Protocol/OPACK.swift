@@ -133,7 +133,7 @@ public enum OPACK {
       }
 
       if array.count >= 0xF {
-        result.append(0x03) // End marker
+        result.append(0x03)  // End marker
       }
       return result
     }
@@ -149,7 +149,7 @@ public enum OPACK {
       }
 
       if dict.count >= 0xF {
-        result.append(0x03) // End marker
+        result.append(0x03)  // End marker
       }
       return result
     }
@@ -169,27 +169,23 @@ public enum OPACK {
       throw OPACKError.insufficientData
     }
 
-    var objects = objectList
+    let objects = objectList
     let marker = data[0]
     var remaining = data.dropFirst()
     var value: Any
-    var addToObjectList = true
 
     switch marker {
     // Boolean true
     case 0x01:
       value = true
-      addToObjectList = false
 
     // Boolean false
     case 0x02:
       value = false
-      addToObjectList = false
 
     // Null
     case 0x04:
       value = NSNull()
-      addToObjectList = false
 
     // UUID
     case 0x05:
@@ -204,9 +200,8 @@ public enum OPACK {
       remaining = remaining.dropFirst(16)
 
     // Small integers (0-39)
-    case 0x08 ... 0x2F:
+    case 0x08...0x2F:
       value = Int(marker - 8)
-      addToObjectList = false
 
     // Integers with size
     case 0x30:
@@ -242,7 +237,7 @@ public enum OPACK {
       remaining = remaining.dropFirst(8)
 
     // String (small, 0-32 bytes)
-    case 0x40 ... 0x60:
+    case 0x40...0x60:
       let length = Int(marker - 0x40)
       guard remaining.count >= length else { throw OPACKError.insufficientData }
       let stringData = remaining.prefix(length)
@@ -253,7 +248,7 @@ public enum OPACK {
       remaining = remaining.dropFirst(length)
 
     // String (with length prefix)
-    case 0x61 ... 0x64:
+    case 0x61...0x64:
       let lengthBytes = Int(marker & 0x0F)
       guard remaining.count >= lengthBytes else { throw OPACKError.insufficientData }
 
@@ -282,14 +277,14 @@ public enum OPACK {
       remaining = remaining.dropFirst(length)
 
     // Data (small, 0-32 bytes)
-    case 0x70 ... 0x90:
+    case 0x70...0x90:
       let length = Int(marker - 0x70)
       guard remaining.count >= length else { throw OPACKError.insufficientData }
       value = Data(remaining.prefix(length))
       remaining = remaining.dropFirst(length)
 
     // Data (with length prefix)
-    case 0x91 ... 0x94:
+    case 0x91...0x94:
       let lengthBytes = 1 << ((marker & 0x0F) - 1)
       guard remaining.count >= lengthBytes else { throw OPACKError.insufficientData }
 
@@ -314,8 +309,8 @@ public enum OPACK {
       remaining = remaining.dropFirst(length)
 
     // Array
-    case 0xD0 ... 0xDF:
-      var count = Int(marker & 0x0F)
+    case 0xD0...0xDF:
+      let count = Int(marker & 0x0F)
       var array: [Any] = []
 
       if count == 0x0F {
@@ -329,7 +324,7 @@ public enum OPACK {
           remaining = remaining.dropFirst()
         }
       } else {
-        for _ in 0 ..< count {
+        for _ in 0..<count {
           let (item, rest) = try unpack(remaining, objectList: objects)
           array.append(item)
           remaining = rest
@@ -337,11 +332,10 @@ public enum OPACK {
       }
 
       value = array
-      addToObjectList = false
 
     // Dictionary
-    case 0xE0 ... 0xEF:
-      var count = Int(marker & 0x0F)
+    case 0xE0...0xEF:
+      let count = Int(marker & 0x0F)
       var dict: [String: Any] = [:]
 
       if count == 0x0F {
@@ -359,7 +353,7 @@ public enum OPACK {
           remaining = remaining.dropFirst()
         }
       } else {
-        for _ in 0 ..< count {
+        for _ in 0..<count {
           let (keyValue, rest1) = try unpack(remaining, objectList: objects)
           let (val, rest2) = try unpack(rest1, objectList: objects)
 
@@ -371,7 +365,6 @@ public enum OPACK {
       }
 
       value = dict
-      addToObjectList = false
 
     default:
       throw OPACKError.unsupportedMarker(marker)
@@ -398,7 +391,7 @@ public enum OPACK {
         return "Failed to decode data"
       case .unsupportedType:
         return "Unsupported data type"
-      case let .unsupportedMarker(marker):
+      case .unsupportedMarker(let marker):
         return "Unsupported OPACK marker: 0x\(String(format: "%02X", marker))"
       case .insufficientData:
         return "Insufficient data for decoding"
@@ -411,14 +404,14 @@ public enum OPACK {
 
 // MARK: - Convenience Extensions
 
-public extension OPACK {
+extension OPACK {
   /// Encode a dictionary to OPACK
-  static func encodeDictionary(_ dict: [String: Any]) throws -> Data {
+  public static func encodeDictionary(_ dict: [String: Any]) throws -> Data {
     return try encode(dict)
   }
 
   /// Decode OPACK to a dictionary
-  static func decodeDictionary(_ data: Data) throws -> [String: Any] {
+  public static func decodeDictionary(_ data: Data) throws -> [String: Any] {
     let value = try decode(data)
     guard let dict = value as? [String: Any] else {
       throw OPACKError.invalidFormat

@@ -63,7 +63,9 @@ public class PairingCoordinator {
   // MARK: - Send and Wait
 
   /// Send a message and wait for response
-  public func sendAndWait(_ message: CompanionMessage, timeout: TimeInterval = 10.0) async throws -> CompanionMessage {
+  public func sendAndWait(_ message: CompanionMessage, timeout: TimeInterval = 10.0) async throws
+    -> CompanionMessage
+  {
     try await connection.send(message)
     return try await waitForMessage(timeout: timeout)
   }
