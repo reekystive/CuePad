@@ -2,6 +2,7 @@ import Foundation
 import Network
 
 /// Companion protocol connection to Apple TV
+@MainActor
 public class CompanionConnection {
   private var connection: NWConnection?
   private let device: ATVDevice
@@ -139,29 +140,23 @@ public class CompanionConnection {
     connection.receiveMessage { [weak self] data, _, isComplete, error in
       guard let self = self else { return }
 
-      if let data = data, !data.isEmpty {
-        Task { @MainActor in
+      Task { @MainActor in
+        if let data = data, !data.isEmpty {
           self.receiveBuffer.append(data)
           self.processReceiveBuffer()
         }
-      }
 
-      if let error = error {
-        Task { @MainActor in
+        if let error = error {
           print("❌ Receive error: \(error)")
           self.onDisconnected?(error)
+          return
         }
-        return
-      }
 
-      if isComplete {
-        Task { @MainActor in
+        if isComplete {
           self.onDisconnected?(nil)
+          return
         }
-        return
-      }
 
-      Task { @MainActor in
         self.startReceiving()
       }
     }
